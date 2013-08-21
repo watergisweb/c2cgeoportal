@@ -287,6 +287,15 @@ localHostForward:
 
      The target database is the database where the changes are replicated.
 
+12. For non Apt/Dpkg based OS, disable the package checking:
+    In the ``buildout.cfg`` section ``[buildout]`` add:
+
+        parts -=
+            test-packages
+            test-packages-mobile
+            test-packages-tilecloud-chain
+
+
 Version 1.3.2
 =============
 

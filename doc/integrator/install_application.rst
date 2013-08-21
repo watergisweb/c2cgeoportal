@@ -183,6 +183,19 @@ OpenLayers and GeoExt.
 
         svn co https://project.camptocamp.com/svn/<my_project>/trunk <my_project>
 
+Non Apt/Dpkg based OS Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Disable the package checking:
+
+In the ``buildout.cfg`` section ``[buildout]`` add::
+
+    parts -=
+        test-packages
+        test-packages-mobile
+        test-packages-tilecloud-chain
+
+
 Windows Specific Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

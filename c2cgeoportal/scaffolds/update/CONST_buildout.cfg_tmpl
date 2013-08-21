@@ -2,6 +2,9 @@
 extends = versions.cfg
 parts = eggs
         fix-perm
+        test-packages
+        test-packages-mobile
+        test-packages-tilecloud-chain
         activate
         template
         modwsgi
@@ -106,6 +109,23 @@ cmds =
     >>>    for d in [d for d in dirs.split('\n') if len(d) > 0]:
     >>>        call(['chmod', '--quiet', 'g+s', d])
     >>>    call(['chmod', '--quiet', '-R', 'g+rw,o+r', '.'])
+
+[test-packages]
+recipe = c2c.recipe.pkgversions
+mapserver-bin = 6.0.3
+deploy = 0.3.1
+postgis = 1.5.3
+libapache2-mod-wsgi =
+
+[test-packages-mobile]
+recipe = c2c.recipe.pkgversions
+libcompass-ruby1.8 =
+sencha-sdk-tools =
+
+[test-packages-tilecloud-chain]
+recipe = c2c.recipe.pkgversions
+libapache2-mod-mapcache =
+memcached =
 
 [activate]
 recipe = evg.recipe.activate
