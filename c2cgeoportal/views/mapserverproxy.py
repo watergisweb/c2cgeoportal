@@ -41,7 +41,6 @@ from pyramid.response import Response
 from pyramid.view import view_config
 
 from c2cgeoportal.lib import caching
-from c2cgeoportal.lib.wfsparsing import is_get_feature, limit_featurecollection
 from c2cgeoportal.lib.functionality import get_functionality
 
 cache_region = caching.get_region()
@@ -217,9 +216,6 @@ class MapservProxy:
         # check for allowed content types
         if "content-type" not in resp:
             return HTTPNotAcceptable()  # pragma: no cover
-
-        if method == "POST" and is_get_feature(body):
-            content = limit_featurecollection(content, limit=200)
 
         content_type = None
         if callback:
