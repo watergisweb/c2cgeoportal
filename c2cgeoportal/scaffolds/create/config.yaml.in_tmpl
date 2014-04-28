@@ -83,7 +83,7 @@ external_mapserv_url:
 raster:
 
 # URL to internal MapServer instance
-mapserv_url: http://localhost/${vars:instanceid}/mapserv
+mapserv_url: http://localhost:${vars:apache_port}/${vars:instanceid}/mapserv
 # If the WFS service is different from the WMS service, uncomment and set the
 # mapserv_wfs_url parameter
 #mapserv_wfs_url:
@@ -92,7 +92,7 @@ mapserv_url: http://localhost/${vars:instanceid}/mapserv
 hide_capabilities: false
 
 # For print proxy
-print_url: http://localhost:8080/print-c2cgeoportal-${vars:instanceid}/pdf/
+print_url: http://localhost:${vars:tomcat_port}/print-c2cgeoportal-${vars:instanceid}/pdf/
 
 # For base layers
 tiles_url: 
