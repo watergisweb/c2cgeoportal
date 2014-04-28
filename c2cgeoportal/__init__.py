@@ -132,11 +132,14 @@ def ogcproxy_route_predicate(info, request):
     """ Serve as a custom route predicate function for ogcproxy.
     We do not want the OGC proxy to be used to reach the app's
     mapserv script. We just return False if the url includes
-    "mapserv". It is rather drastic, but works for us. """
+    "mapserv". It is rather drastic, but works for us. 
+    WGW: this didn't work for us since its too drastic, we used
+    external wms service which also had a "mapserv" in the url 
+    We changed this, now it looks for the current hostname in the url."""
     url = request.params.get('url')
     if url is None:
         return False
-    if url.find('mapserv') > 0:
+    if url.find(request.host_url) > 0:
         return False
     return True
 
