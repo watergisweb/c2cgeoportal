@@ -3,14 +3,14 @@ wfs_settings = request.registry.settings.get('wfs', {})
 %>
 Ext.onReady(function() {
     // Ext global settings
-    Ext.BLANK_IMAGE_URL = "${request.static_url('{{package}}:static/lib/cgxp/ext/Ext/resources/images/default/s.gif')}";
+    Ext.BLANK_IMAGE_URL = "${request.static_path('{{package}}:static/lib/cgxp/ext/Ext/resources/images/default/s.gif')}";
     Ext.QuickTips.init();
 
     // OpenLayers global settings
     OpenLayers.Number.thousandsSeparator = ' ';
     OpenLayers.DOTS_PER_INCH = 96;
-    OpenLayers.ProxyHost = "${request.route_url('ogcproxy')}?url=";
-    OpenLayers.ImgPath = "${request.static_url('{{package}}:static/lib/cgxp/core/src/theme/img/ol/')}";
+    OpenLayers.ProxyHost = "${request.route_path('ogcproxy')}?url=";
+    OpenLayers.ImgPath = "${request.static_path('{{package}}:static/lib/cgxp/core/src/theme/img/ol/')}";
     OpenLayers.Lang.setCode("${lang}");
 
     // GeoExt global settings
@@ -71,8 +71,16 @@ Ext.onReady(function() {
                 region: 'center',
                 layout: 'border',
                 id: 'center',
+% if not notoolbar:
                 tbar: [],
-                bbar: [],
+% endif
+% if not nobottompanel:
+                bbar: 
+				{
+					height: 33,
+					items: []
+				},
+% endif
                 items: [
                     "app-map"
                 ]
@@ -87,7 +95,9 @@ Ext.onReady(function() {
                 collapseMode: "mini",
                 hidden: true,
                 bodyStyle: 'background-color: transparent;'
-            },
+            }
+% if not noleftpanel:
+			,
             {
                 layout: "accordion",
                 id: "left-panel",
@@ -103,11 +113,18 @@ Ext.onReady(function() {
                     title: OpenLayers.i18n("layertree"),
                     id: 'layerpanel',
                     layout: "vbox",
+% if themechoice or permalink_themes:
+					collapsed: false,
+% else:
+					collapsed: true,
+% endif
                     layoutConfig: {
                         align: "stretch"
                     }
                 }]
-            }]
+            }
+% endif
+			]
         },
 
         // configuration of all tool plugins for this application
@@ -115,8 +132,10 @@ Ext.onReady(function() {
         {
             ptype: "cgxp_disclaimer",
             outputTarget: "map"
-        },
-        {
+        }
+% if not noleftpanel:
+		,
+		{
             ptype: "cgxp_themeselector",
             outputTarget: "layerpanel",
             layerTreeId: "layertree",
@@ -136,6 +155,8 @@ Ext.onReady(function() {
                 style: "padding: 3px;"
             }
         },
+%endif 
+% if not noleftpanel:
         {
             ptype: "cgxp_layertree",
             id: "layertree",
@@ -150,32 +171,34 @@ Ext.onReady(function() {
 % endif
                 defaultThemes: ["to_be_defined"],
                 uniqueTheme: true,
-                wmsURL: "${request.route_url('mapserverproxy', path='')}",
+                wmsURL: "${request.route_path('mapserverproxy', path='')}"
                 wmsOptions: {
                     ratio: (Ext.isChrome && Ext.isWindows) ? 1 : 1.5
                 }
             },
             outputTarget: "layerpanel"
         },
+% endif
 % if user:
         {
             ptype: "cgxp_querier",
             outputTarget: "left-panel",
             events: EVENTS,
-            mapserverproxyURL: "${request.route_url('mapserverproxy', path='')}",
+            mapserverproxyURL: "${request.route_path('mapserverproxy', path='')}",
             maxFeatures: ${wfs_settings.get('maxfeatures', 200)},
             srsName: 'EPSG:{{srid}}',
             featureTypes: ["query_layer"],
             attributeURLs: ${queryer_attribute_urls | n}
         },
 % endif
+% if not noleftpanel:
         {
             ptype: "cgxp_print",
             legendPanelId: "legendPanel",
             featureProvider: "featuresGrid",
             outputTarget: "left-panel",
-            printURL: "${request.route_url('printproxy', path='')}",
-            mapserverURL: "${request.route_url('mapserverproxy', path='')}",
+            printURL: "${request.route_path('printproxy', path='')}",
+            mapserverURL: "${request.route_path('mapserverproxy', path='')}",
             options: {
                 labelAlign: 'top',
                 defaults: {
@@ -183,20 +206,35 @@ Ext.onReady(function() {
                 },
                 autoFit: true
             }
-        },
-        {
+        }
+% endif
+        ,{
             ptype: "cgxp_featuresgrid",
             id: "featuresGrid",
-            csvURL: "${request.route_url('csvecho')}",
+            csvURL: "${request.route_path('csvecho')}",
             outputTarget: "featuresgrid-container",
             themes: THEMES,
             events: EVENTS,
             csvIncludeHeader: true
         },
         {
-            ptype: "cgxp_mapopacityslider",
-            defaultBaseLayerRef: "${functionality['default_basemap'][0] | n}"
-        },
+            ptype: "cgxp_mapopacityslider"//,
+            //defaultBaseLayerRef: "${functionality['default_basemap'][0] | n}",
+        }
+% if not nobottompanel:
+		,
+		{
+			ptype: "cgxp_scalechooser",
+			actionTarget: 
+			{
+				index: 0,
+				target: "center.bbar"
+			},
+			roundValues : [50,100,200,250,500,750,1000,2000,2500,5000,7500,10000,25000,50000,100000,200000,500000,1000000]
+		}
+% endif
+% if not notoolbar:
+		,
         {
             ptype: "gxp_zoomtoextent",
             actionTarget: "center.tbar",
@@ -216,7 +254,7 @@ Ext.onReady(function() {
             ptype: "cgxp_permalink",
             id: "permalink",
             actionTarget: "center.tbar",
-            shortenerCreateURL: "${request.route_url('shortener_create', path='')}" 
+            shortenerCreateURL: "${request.route_path('shortener_create', path='')}" 
         },
         {
             ptype: "cgxp_measure",
@@ -230,13 +268,14 @@ Ext.onReady(function() {
             toggleGroup: "maptools",
             events: EVENTS,
             themes: THEMES,
-            mapserverURL: "${request.route_url('mapserverproxy', path='')}",
+            mapserverURL: "${request.route_path('mapserverproxy', path='')}",
             WFSTypes: ${WFSTypes | n},
+			externalWFSTypes: ${externalWFSTypes | n},
             enableWMTSLayers: false
         },
         {
             ptype: "cgxp_fulltextsearch",
-            url: "${request.route_url('fulltextsearch', path='')}",
+            url: "${request.route_path('fulltextsearch', path='')}",
             layerTreeId: "layertree",
             actionTarget: "center.tbar"
         },
@@ -275,9 +314,9 @@ Ext.onReady(function() {
             username: "${user.username}",
             isPasswordChanged: ${"true" if user.is_password_changed else "false"},
 % endif
-            loginURL: "${request.route_url('login', path='')}",
-            loginChangeURL: "${request.route_url('loginchange', path='')}",
-            logoutURL: "${request.route_url('logout', path='')}",
+            loginURL: "${request.route_path('login', path='')}",
+            loginChangeURL: "${request.route_path('loginchange', path='')}",
+            logoutURL: "${request.route_path('logout', path='')}",
             enablePasswordChange: true,
             forcePasswordChange: true,
             permalinkId: "permalink"
@@ -292,6 +331,7 @@ Ext.onReady(function() {
             url: "#help-url",
             actionTarget: "center.tbar"
         }
+% endif
         ],
 
         // layer sources
@@ -351,6 +391,9 @@ Ext.onReady(function() {
                     },
                     minRatio: 64,
                     maxRatio: 64,
+% if showoverview:
+					maximized: true,
+% endif
                     layers: [new OpenLayers.Layer.OSM("OSM", [
                             'http://a.tile.openstreetmap.org/${"${z}/${x}/${y}"}.png',
                             'http://b.tile.openstreetmap.org/${"${z}/${x}/${y}"}.png',

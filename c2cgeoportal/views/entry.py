@@ -74,8 +74,16 @@ class Entry(object):
             request.registry.settings["default_max_age"]
         self.settings = request.registry.settings
         self.debug = "debug" in request.params
-        self.lang = get_locale_name(request)
-
+        if("lang" in request.params is True):
+            self.lang=request.params['lang']
+        else:
+            self.lang = get_locale_name(request)
+        self.noheader = "noheader" in request.params
+        self.noleftpanel = "noleftpanel" in request.params		
+        self.nobottompanel = "nobottompanel" in request.params
+        self.notoolbar = "notoolbar" in request.params
+        self.themechoice = "themechoice" in request.params
+        self.showoverview = "showoverview" in request.params
     @view_config(route_name='testi18n', renderer='testi18n.html')
     def testi18n(self):  # pragma: no cover
         _ = self.request.translate
@@ -349,6 +357,8 @@ class Entry(object):
             l['minResolutionHint'] = layer.minResolution
         if layer.minResolution:
             l['maxResolutionHint'] = layer.maxResolution
+        if layer.wmsLayers:
+            l['wmsLayers']=layer.wmsLayers
 
     def _fill_WMTS(self, l, layer, wms_layers, wms, errors):
         l['url'] = layer.url
@@ -717,20 +727,68 @@ class Entry(object):
         d = {
             'lang': self.lang,
             'debug': self.debug,
-            'extra_params': '?lang=%s&' % self.lang if self.lang else '?'
+            'extra_params': '?lang=%s&' % self.lang if self.lang else '?',
+            'noheader' : self.noheader,
+            'params_excl_lang' : '&',
         }
-
+        if(self.debug is True):
+            d['params_excl_lang'] = d['params_excl_lang'] + 'debug'
+        if(self.noleftpanel):
+            if(len(d['extra_params'])>=1):
+                d['extra_params'] = d['extra_params'] + 'noleftpanel'
+            else:
+                d['extra_params'] = d['extra_params'] + '&noleftpanel'
+            if(len(d['params_excl_lang'])==1):
+                d['params_excl_lang'] = d['params_excl_lang'] + 'noleftpanel'
+            else:
+                d['params_excl_lang'] = d['params_excl_lang'] + '&noleftpanel'
+        if(self.nobottompanel):
+            if(len(d['extra_params'])>=1):
+                d['extra_params'] = d['extra_params'] + 'nobottompanel'
+            else:
+                d['extra_params'] = d['extra_params'] + '&nobottompanel'
+            if(len(d['params_excl_lang'])==1):
+                d['params_excl_lang'] = d['params_excl_lang'] + 'nobottompanel'
+            else:
+                d['params_excl_lang'] = d['params_excl_lang'] + '&nobottompanel'
+        if(self.notoolbar):
+            if(len(d['extra_params'])>=1):
+                d['extra_params'] = d['extra_params'] + 'notoolbar'
+            else:
+                d['extra_params'] = d['extra_params'] + '&notoolbar'
+            if(len(d['params_excl_lang'])==1):
+                d['params_excl_lang'] = d['params_excl_lang'] + 'notoolbar'
+            else:
+                d['params_excl_lang'] = d['params_excl_lang'] + '&notoolbar'
+        if(self.themechoice):
+            if(len(d['extra_params'])>=1):
+                d['extra_params'] = d['extra_params'] + 'themechoice'
+            else:
+                d['extra_params'] = d['extra_params'] + '&themechoice'
+            if(len(d['params_excl_lang'])==1):
+                d['params_excl_lang'] = d['params_excl_lang'] + 'themechoice'
+            else:
+                d['params_excl_lang'] = d['params_excl_lang'] + '&themechoice'		
+        if(self.showoverview):
+            if(len(d['extra_params'])>=1):
+                d['extra_params'] = d['extra_params'] + 'showoverview'
+            else:
+                d['extra_params'] = d['extra_params'] + '&showoverview'
+            if(len(d['params_excl_lang'])==1):
+                d['params_excl_lang'] = d['params_excl_lang'] + 'showoverview'
+            else:
+                d['params_excl_lang'] = d['params_excl_lang'] + '&showoverview'		
         # general templates_params handling
         if templates_params is not None:
             d = dict(d.items() + templates_params.items())
         # specific permalink_themes handling
         if 'permalink_themes' in d:
             d['extra_params'] = d['extra_params'] + d['permalink_themes']
-
+            d['params_excl_lang'] = d['params_excl_lang'] + d['permalink_themes']
         # check if route to mobile app exists
         try:
             d['mobile_url'] = self.request.route_url('mobile_index_prod')
-        except:  # pragma: no cover
+        except:
             d['mobile_url'] = None
 
         d['no_redirect'] = self.request.params.get('no_redirect') is not None
@@ -742,7 +800,11 @@ class Entry(object):
         d = self._getVars()
         d['lang'] = self.lang
         d['debug'] = self.debug
-
+        d['noleftpanel'] = self.noleftpanel
+        d['nobottompanel'] = self.nobottompanel
+        d['notoolbar'] = self.notoolbar
+        d['themechoice']= self.themechoice
+        d['showoverview']=self.showoverview
         self.request.response.content_type = 'application/javascript'
         return d
 
@@ -1068,5 +1130,6 @@ class Entry(object):
         themes = self.request.matchdict['themes']
         d = {}
         d['permalink_themes'] = 'permalink_themes=' + ','.join(themes)
+        d['themename'] = ','.join(themes)
         # call home with extra params
         return self.home(d)
