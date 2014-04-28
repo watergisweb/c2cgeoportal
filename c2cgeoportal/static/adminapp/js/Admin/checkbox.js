@@ -166,7 +166,7 @@ either expressed or implied, of the FreeBSD Project.
             fields = ["legendRule"];
         }
         else if (state == "external WMS") {
-            fields = ["url", "style", "imageType", "legendRule", "isSingleTile"];
+            fields = ["url", "style", "imageType", "legendRule", "isSingleTile", "wmsLayers"]; 
         }
         else if (state == "WMTS") {
             fields = ["url", "style", "dimensions", "matrixSet", "wmsUrl",
